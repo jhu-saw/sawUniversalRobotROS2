@@ -22,7 +22,7 @@ repositories:
   cisst-saw/sawUniversalRobot:
     type: git
     url: https://github.com/jhu-saw/sawUniversalRobot.git
-    version: devel
+    version: feature-updated-CMake-ros
   cisst-saw/sawUniversalRobotROS2:
     type: git
     url: https://github.com/jhu-saw/sawUniversalRobotROS2.git
