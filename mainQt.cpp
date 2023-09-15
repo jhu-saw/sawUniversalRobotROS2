@@ -50,6 +50,7 @@ int main(int argc, char * argv[])
     std::string ipAddress;
     double rosPeriod = 10.0 * cmn_ms;
     double tfPeriod = 20.0 * cmn_ms;
+    std::string rosNamespace = "";
 
     options.AddOptionOneValue("i", "ip-address",
                               "IP address for the UR controller",
@@ -62,6 +63,9 @@ int main(int argc, char * argv[])
     options.AddOptionOneValue("P", "tf-ros-period",
                               "period in seconds to read all components and broadcast tf2 (default 0.02, 20 ms, 50Hz).  There is no point to have a period higher than the UR's period",
                               cmnCommandLineOptions::OPTIONAL_OPTION, &tfPeriod);
+    options.AddOptionOneValue("n", "ros-namespace",
+                              "ROS topic namespace, default is empty",
+                              cmnCommandLineOptions::OPTIONAL_OPTION, &rosNamespace);
 
     std::list<std::string> managerConfig;
     options.AddOptionMultipleValues("m", "component-manager",
@@ -117,19 +121,19 @@ int main(int argc, char * argv[])
         = new mts_ros_crtk_bridge_provided("ur_crtk_bridge", rosNode);
     crtk_bridge->bridge_interface_provided(ur->GetName(),
                                            "control",
-                                           "", // ros sub namespace
+                                           rosNamespace,
                                            rosPeriod, tfPeriod);
 
     // extra subscribers
     crtk_bridge->subscribers_bridge()
         .AddSubscriberToCommandVoid
-        ("control", "SetRobotFreeDriveMode", "SetRobotFreeDriveMode");
+        ("control", "SetRobotFreeDriveMode", rosNamespace + "/" + "SetRobotFreeDriveMode");
     crtk_bridge->subscribers_bridge()
         .AddSubscriberToCommandVoid
-        ("control", "SetRobotRunningMode", "SetRobotRunningMode");
+        ("control", "SetRobotRunningMode", rosNamespace + "/" + "SetRobotRunningMode");
     crtk_bridge->subscribers_bridge()
         .AddSubscriberToCommandWrite<vctFrm3, geometry_msgs::msg::PoseStamped>
-        ("control", "SetToolFrame", "SetToolFrame");
+        ("control", "SetToolFrame", rosNamespace + "/" + "SetToolFrame");
 
     componentManager->AddComponent(crtk_bridge);
     crtk_bridge->Connect();
