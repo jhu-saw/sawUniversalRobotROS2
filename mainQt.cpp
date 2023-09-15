@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
     cmnLogger::AddChannel(std::cerr, CMN_LOG_ALLOW_ERRORS_AND_WARNINGS);
 
     // create ROS node handle
-    rclcpp::init(argc, argv);
+    std::vector<std::string> non_ros_arguments = rclcpp::init_and_remove_ros_arguments(argc, argv);
     auto rosNode = std::make_shared<rclcpp::Node>("universal_robot");
 
     // parse options
@@ -63,20 +63,13 @@ int main(int argc, char * argv[])
     options.AddOptionOneValue("P", "tf-ros-period",
                               "period in seconds to read all components and broadcast tf2 (default 0.02, 20 ms, 50Hz).  There is no point to have a period higher than the UR's period",
                               cmnCommandLineOptions::OPTIONAL_OPTION, &tfPeriod);
-    options.AddOptionNoValue("ros-args", "ros-args",
-                              "Passing ROS arguments to node via command-line",
-                              cmnCommandLineOptions::OPTIONAL_OPTION);
-    options.AddOptionOneValue("r", "remap",
-                              "Following --ros-args: remapping ROS node or namespace",
-                              cmnCommandLineOptions::OPTIONAL_OPTION, &rosRemappingArgs);
-
     std::list<std::string> managerConfig;
     options.AddOptionMultipleValues("m", "component-manager",
                                     "JSON file to configure component manager",
                                     cmnCommandLineOptions::OPTIONAL_OPTION, &managerConfig);
 
     // check that all required options have been provided
-    if (!options.Parse(argc, argv, std::cerr)) {
+    if (!options.Parse(non_ros_arguments, std::cerr)) {
         return -1;
     }
     std::string arguments;
