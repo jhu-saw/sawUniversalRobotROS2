@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
     cmnLogger::AddChannel(std::cerr, CMN_LOG_ALLOW_ERRORS_AND_WARNINGS);
 
     // create ROS node handle
-    rclcpp::init(argc, argv);
+    std::vector<std::string> non_ros_arguments = rclcpp::init_and_remove_ros_arguments(argc, argv);
     auto rosNode = std::make_shared<rclcpp::Node>("universal_robot");
 
     // parse options
@@ -69,7 +69,7 @@ int main(int argc, char * argv[])
                                     cmnCommandLineOptions::OPTIONAL_OPTION, &managerConfig);
 
     // check that all required options have been provided
-    if (!options.Parse(argc, argv, std::cerr)) {
+    if (!options.Parse(non_ros_arguments, std::cerr)) {
         return -1;
     }
     std::string arguments;
@@ -152,11 +152,15 @@ int main(int argc, char * argv[])
     tabWidget->show();
     application.exec();
 
+    // stop all logs
+    cmnLogger::Kill();
+
+    // stop ROS node
+    rclcpp::shutdown();
+
     // kill all components and perform cleanup
     componentManager->KillAllAndWait(5.0 * cmn_s);
     componentManager->Cleanup();
-
-    cmnLogger::Kill();
 
     return 0;
 }
